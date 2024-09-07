@@ -1,70 +1,166 @@
-<!-- js  -->
-<script setup>
-import { ref } from 'vue';
-/**
-  todo item
-  key: text, done
-  item.text or item['text']
-  {
-    text: string
-    done: boolean(true/false)
-  }
-*/
-
-// ㄴㅇㄴㄴㅇ
-const inputValue = ref('');
-const todoList = ref([
-  { text: 'vue', done: false },
-  { text: 'react', done: false },
-  { text: 'vercel', done: false },
-]);
-
-const handleClickButton = () => {
-  todoList.value.push(inputValue.value);
-};
-
-const handleChange = (event) => {
-  const nextValue = event.target.value;
-  inputValue.value = nextValue;
-};
-
-const handleClickDeleteButton = (index) => {
-  todoList.value.splice(index, 1);
-};
-</script>
-
-<!-- html -->
 <template>
-  <p>{{ todoList }}</p>
-  <h4>TODO LIST</h4>
-
-  <input v-model="inputValue" />
-  <!-- <input :value="inputValue" @change="handleChange" /> -->
-
-  <button @click="handleClickButton">확인</button>
-
-  <div class="todo-item" v-for="(item, index) in todoList">
-    <input type="checkbox" v-model="item.done" />
-    <span :class="{ 'done-item': item.done }">{{ item.text }}</span>
-    <div>
-      <button>수정</button>
-      <button @click="handleClickDeleteButton(index)">삭제</button>
+  <div class="container">
+    <h1>Todo List</h1>
+    <div class="input-container">
+      <input
+        v-model="newTodo"
+        @keyup.enter="addTodo"
+        type="text"
+        placeholder="새로운 할 일을 입력하세요"
+      />
     </div>
+    <ul>
+      <li v-for="todo in todos" :key="todo.id">
+        <div class="todo-item">
+          <input
+            type="checkbox"
+            v-model="todo.completed"
+          />
+          <input
+            v-if="todo.isEditing"
+            v-model="todo.text"
+            @blur="finishEdit(todo)"
+            @keyup.enter="finishEdit(todo)"
+            type="text"
+            class="edit-input"
+          />
+          <span
+            v-else
+            @dblclick="startEdit(todo)"
+            :class="{ 'completed': todo.completed }"
+          >
+            {{ todo.text }}
+          </span>
+        </div>
+        <div class="todo-actions">
+          <button @click="removeTodo(todo.id)" class="delete-btn">삭제</button>
+          <button @click="startEdit(todo)" v-if="!todo.isEditing" class="edit-btn">수정</button>
+        </div>
+      </li>
+    </ul>
   </div>
 </template>
 
-<!-- css -->
-<style scoped>
-.todo-item {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid gray;
+<script lang="ts" setup>
+import { ref } from 'vue'
+
+interface Todo {
+  id: number
+  text: string
+  completed: boolean
+  isEditing: boolean
 }
 
-.done-item {
-  text-decoration-line: line-through;
+const newTodo = ref('')
+const todos = ref<Todo[]>([])
+
+const addTodo = () => {
+  if (newTodo.value.trim()) {
+    todos.value.push({
+      id: Date.now(),
+      text: newTodo.value,
+      completed: false,
+      isEditing: false
+    })
+    newTodo.value = ''
+  }
+}
+
+const removeTodo = (id: number) => {
+  todos.value = todos.value.filter(todo => todo.id !== id)
+}
+
+const startEdit = (todo: Todo) => {
+  todo.isEditing = true
+}
+
+const finishEdit = (todo: Todo) => {
+  todo.isEditing = false
+  todo.text = todo.text.trim()
+  if (!todo.text) {
+    removeTodo(todo.id)
+  }
+}
+</script>
+
+<style>
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.input-container {
+  margin-bottom: 20px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.todo-item input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+.todo-item span {
+  flex-grow: 1;
+}
+
+.completed {
+  text-decoration: line-through;
+}
+
+.edit-input {
+  flex-grow: 1;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.todo-actions button {
+  margin-left: 10px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background-color: #ff4d4d;
+  color: white;
+}
+
+.edit-btn {
+  background-color: #4d94ff;
+  color: white;
 }
 </style>
