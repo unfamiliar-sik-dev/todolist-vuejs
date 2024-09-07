@@ -10,6 +10,8 @@ import { ref } from 'vue';
     done: boolean(true/false)
   }
 */
+
+// ㄴㅇㄴㄴㅇ
 const inputValue = ref('');
 const todoList = ref([
   { text: 'vue', done: false },
